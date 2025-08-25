@@ -31,12 +31,27 @@ app.get("/listings", async (req, res) => {
     res.render("./listings/index.ejs", {allListings});  // rendering index.ejs file and passing allListings data to it
 });
 
+//New Route : to show the form to create a new listing
+app.get("/listings/new", (req, res) => {
+    res.render("./listings/new.ejs");
+});
+
 //Show Route : it will directed through clicking listing title in index.ejs file
 app.get("/listings/:id", async (req, res) => {
     let {id} = req.params;
     const listing = await Listing.findById(id);
     res.render("./listings/show.ejs", {listing});
 });
+
+//Create Route : to add a new listing to the database
+app.post("/listings", async (req, res) => {  // async because we are doing database operation(inserting data)
+    // let {title, description, price, location, country} = req.body; --> to avoid this we use object type data access like below
+    const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
+    await newListing.save(); // saving the new listing to the database
+    res.redirect("./listings"); // redirecting to the index route to see the new listing added
+}); 
+
+
 
 // app.get('/testListing', async(req, res) => {    // route for testing the listing model
 //     let sampleListing = new Listing({
