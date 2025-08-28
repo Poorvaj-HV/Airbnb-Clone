@@ -1,21 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderLust</title>
-</head>
-<body>
-    <h3>All Listings</h3>
-    <form method="GET" action="/listings/new">
-        <button type="submit">Add new Listing</button>
-    </form>
-    <ul>
-        <% for(let listing of allListings) { %>
-            <li><a href="/listings/<%=listing._id%>"> <%= listing.title %> </a></li>
-        <% } %>
-    </ul>
-</body>
-</html>
+<% layout("/layouts/boilerplate") %>  <!-- to use the boilerplate layout for this page -->
+
+
+<h3>All Listings</h3>
+<!-- <form method="GET" action="/listings/new">         -> this feature is implemented in the navbar
+    <button type="submit">Add new Listing</button>
+</form> -->
+
+<div class="row row-cols-lg-3 ros-cols-md-2 row-cols-sm-1">
+  <% for(let listing of allListings) { %>
+    <a href="/listings/<%= listing._id %>" class="listing-link">
+      <div class="card col">
+        <img src="<%= listing.image && listing.image.url ? listing.image.url : 'https://via.placeholder.com/300x200?text=No+Image' %>" 
+        class="card-img-top" 
+        alt="listing_image" 
+        style="height: 20rem" />
+        <div class="card-img-overlay"></div>
+        <div class="card-body">
+          <p class="card-text">
+            <b><%= listing.title %></b> <br/>
+            &#8377; 
+            <%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %> / night <br/>
+          </p>
+        </div>
+      </div>
+    </a>
+  <% } %>
+</div>
 
 

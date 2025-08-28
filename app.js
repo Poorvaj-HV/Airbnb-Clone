@@ -1,14 +1,16 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const mongoose = require('mongoose');
-const Listing = require('./models/listing.js');
-const path = require('path');
+const mongoose = require("mongoose");
+const Listing = require("./models/listing.js");
+const path = require("path");
+const methodOverride = require("method-override");
+const ejsMate = require("ejs-mate");
 
-const MONGO_URL = 'mongodb://127.0.0.1:27017/wanderlust';
+const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
 main()
   .then(() => {
-    console.log('Connected to MongoDB');
+    console.log("Connected to MongoDB");
   }).catch(err => {
     console.log(err);
   });
@@ -17,12 +19,16 @@ async function main() {
     await mongoose.connect(MONGO_URL);
 }
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, "views"));  // setting the views directory to the views folder
+app.set("view engine", "ejs"); // setting the view engine to ejs
+app.set("views", path.join(__dirname, "views"));  // setting the views directory to the views folder
 app.use(express.urlencoded({extended: true})); // to parse the incoming request body
+app.use(methodOverride("_method")); // to use method-override
+app.engine("ejs", ejsMate); // to use ejs-mate for layouts
+app.use(express.static(path.join(__dirname, "/public"))); // to serve static files from the public directory
 
-app.get('/', (req, res) => {
-    res.send('Hii Poovi, you are on root page');
+
+app.get("/", (req, res) => {
+    res.send("Hii Poovi, you are on root page");
 });
 
 //Index Route
@@ -50,6 +56,27 @@ app.post("/listings", async (req, res) => {  // async because we are doing datab
     await newListing.save(); // saving the new listing to the database
     res.redirect("./listings"); // redirecting to the index route to see the new listing added
 }); 
+
+//Edit Route : to show the form to edit a listing
+app.get("/listings/:id/edit", async (req, res) => {
+    let {id} = req.params;
+    const listing = await Listing.findById(id);
+    res.render("./listings/edit.ejs", {listing});
+});
+
+//Update Route : to update the edited listing in the database
+app.put("/listings/:id", async (req, res) => {
+    let {id} = req.params;
+    await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
+    res.redirect("/listings");
+});
+
+//Delete Route : to delete a listing from the database
+app.delete("/listings/:id", async (req, res) => {
+    let {id} = req.params;
+    await Listing.findByIdAndDelete(id); // deleting the listing from the database
+    res.redirect("/listings");
+});
 
 
 
