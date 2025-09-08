@@ -15,11 +15,13 @@
             class="form-control" 
             required
         />    <!--inorder to access these form data we written listing object's title key value pair will done, like wise-->
+        <div class="valid-feedback">Title looks good</div>
       </div>
 
       <div class="mb-3">
         <label for="description" class="form-lable">Description</label>
         <textarea name="listing[description]" placeholder="Taken with a remote and a little luck..." class="form-control" required></textarea>
+        <div class="invalid-feedback">Please enter a short Description</div>
       </div>
 
       <div class="mb-3">
@@ -31,17 +33,20 @@
         <div class="mb-3 col-md-6">   <!-- bootstrap class for column & md - to adjust on medium screen-->
           <label for="price" class="form-lable">Price</label>
           <input name="listing[price]" placeholder="1200" type="number" class="form-control" required>
+          <div class="invalid-feedback">Price should be valid</div>
         </div>
         
         <div class="mb-3 col-md-6">   <!-- bootstrap class for column -->
           <label for="country" class="form-lable">Country</label>
           <input name="listing[country]" placeholder="India" type="text" class="form-control" required>
+          <div class="invalid-feedback">Country name should be valid</div>
         </div>
       </div>
 
       <div class="mb-3">
         <label for="location" class="form-lable">Location</label>
         <input name="listing[location]" placeholder="Goa, Bengalore" type="text" class="form-control" required>
+        <div class="invalid-feedback">Location should be valid</div>
       </div>
         
       <button class="btn btn-dark add-btn mt-3">Add</button> <!-- bootstrap class for button -->
