@@ -1,5 +1,8 @@
 body {
     font-family: "Plus Jakarta Sans", sans-serif !important;
+    display: flex;
+    flex-direction: column; 
+    min-height: 100vh; 
 }
 
 
@@ -7,9 +10,6 @@ body {
 .navbar {
     height: 5rem;
     background-color: white;
-    display: flex;
-    flex-direction: column; 
-    /* min-height: 100vh;  */
 }
 
 .container {
@@ -88,12 +88,33 @@ body {
 }
 
 .card:hover .card-img-overlay {
-    opacity: 0.2;
-    background-color: white;
+    opacity: 0.1;
+    background-color: rgb(255, 255, 255);
 }
 
 /* button on new listing page */
 .add-btn {
     background-color: #fe424d;
     border: none;
+}
+
+/* edit button on edit listing page  */
+.edit-btn {
+    background-color: #fe424d;
+    border: none;
+}
+
+/* show page */
+.show-img {
+    height: 30vh;
+}
+
+.btns {
+    display: flex;
+    gap: 1rem;
+}
+
+.show-card {
+    padding-left: 0;
+    padding-right: 0;
 }

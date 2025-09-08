@@ -1,8 +1,7 @@
 <% layout("/layouts/boilerplate") %>  <!-- to use the boilerplate layout for this page -->
 
-<div class="row">
+<div class="row mt-3">  <!-- bootstrap class for row & margin top -->
   <div class="col-8 offset-2">  <!-- bootstrap class for column with offset -->
-    <br><br>
     <h3><b>Create a new Listing</b></h3>
     <br>
     <form method="POST" action="/listings">  <!-- when we submit this form it will send a post request to /listings route -->   
@@ -44,9 +43,7 @@
         <input name="listing[location]" placeholder="Goa, Bengalore" type="text" class="form-control">
       </div>
         
-      <br><br>
-      <button class="btn btn-dark add-btn">Add</button> <!-- bootstrap class for button -->
-      <br><br>
+      <button class="btn btn-dark add-btn mt-3">Add</button> <!-- bootstrap class for button -->
     </form>
   </div>
 </div>

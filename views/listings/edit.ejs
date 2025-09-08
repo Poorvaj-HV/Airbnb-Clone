@@ -1,8 +1,7 @@
 <% layout("/layouts/boilerplate") %>  <!-- to use the boilerplate layout for this page -->
 
-<div class="row">
+<div class="row mt-3">
   <div class="col-8 offset-2">
-    <br><br>
     <h3><b>Edit your Listing</b></h3>
     <br>
     <form method="POST" action="/listings/<%= listing._id %>?_method=PUT">    <!--while updating or to edit changes I installed method-override -> npm i method-override--> 
@@ -21,17 +20,15 @@
         <input name="listing[image]" value="<%= listing.image %>" type="text" class="form-control">
       </div>
 
-      <div class="row">  
+      <div class="row"> 
         <div class="mb-3 col-md-6">
-          <div class="mb-3">
             <label for="price" class="form-lable">Price</label>
             <input name="listing[price]" value="<%= listing.price %>" type="number" class="form-control">
-          </div>
+        </div>
    
-          <div class="mb-3">
+        <div class="mb-3 col-md-6">
             <label for="country" class="form-lable">Country</label>
             <input name="listing[country]" value="<%= listing.country %>" type="text" class="form-control">
-          </div>
         </div>
       </div>
 
@@ -40,9 +37,7 @@
         <input name="listing[location]" value="<%= listing.location %>" type="text" class="form-control">
       </div>
  
-      <br><br>
-      <button class="btn btn-dark add-btn">Edit Changes</button>
-      <br><br>
+      <button class="btn btn-dark edit-btn mt-3">Edit Changes</button>
     </form>
   </div>
 </div>
