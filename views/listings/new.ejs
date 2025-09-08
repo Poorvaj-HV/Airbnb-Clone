@@ -4,7 +4,7 @@
   <div class="col-8 offset-2">  <!-- bootstrap class for column with offset -->
     <h3><b>Create a new Listing</b></h3>
     <br>
-    <form method="POST" action="/listings">  <!-- when we submit this form it will send a post request to /listings route -->   
+    <form method="POST" action="/listings" novalidate class="needs-validation">  <!-- when we submit this form it will send a post request to /listings route, novalidate -> bootstrap validation to remove browser default validation setting and apply custom validation -->   
       <div class="mb-3">  <!-- bootstrap class for margin bottom -->
         <label for="title" class="form-lable">Title</label>  <!-- bootstrap class for form label -->
         <!-- bootstrap class for form control -->
@@ -13,12 +13,13 @@
             placeholder="Add a catchy title" 
             type="text" 
             class="form-control" 
+            required
         />    <!--inorder to access these form data we written listing object's title key value pair will done, like wise-->
       </div>
 
       <div class="mb-3">
         <label for="description" class="form-lable">Description</label>
-        <textarea name="listing[description]" placeholder="Taken with a remote and a little luck..." class="form-control"></textarea>
+        <textarea name="listing[description]" placeholder="Taken with a remote and a little luck..." class="form-control" required></textarea>
       </div>
 
       <div class="mb-3">
@@ -29,18 +30,18 @@
       <div class="row">     <!-- bootstrap class for row & this div is for making Price and Coutry in a same row--> 
         <div class="mb-3 col-md-6">   <!-- bootstrap class for column & md - to adjust on medium screen-->
           <label for="price" class="form-lable">Price</label>
-          <input name="listing[price]" placeholder="1200" type="number" class="form-control">
+          <input name="listing[price]" placeholder="1200" type="number" class="form-control" required>
         </div>
         
         <div class="mb-3 col-md-6">   <!-- bootstrap class for column -->
           <label for="country" class="form-lable">Country</label>
-          <input name="listing[country]" placeholder="India" type="text" class="form-control">
+          <input name="listing[country]" placeholder="India" type="text" class="form-control" required>
         </div>
       </div>
 
       <div class="mb-3">
         <label for="location" class="form-lable">Location</label>
-        <input name="listing[location]" placeholder="Goa, Bengalore" type="text" class="form-control">
+        <input name="listing[location]" placeholder="Goa, Bengalore" type="text" class="form-control" required>
       </div>
         
       <button class="btn btn-dark add-btn mt-3">Add</button> <!-- bootstrap class for button -->
