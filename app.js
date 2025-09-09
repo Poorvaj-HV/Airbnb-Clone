@@ -68,7 +68,7 @@ app.get("/listings/:id/edit", async (req, res) => {
 app.put("/listings/:id", async (req, res) => {
     let {id} = req.params;
     await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
-    res.redirect("/listings");
+    res.redirect("/listings/"+ id); // redirecting to the show route to see the updated listing
 });
 
 //Delete Route : to delete a listing from the database
