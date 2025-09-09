@@ -5,6 +5,8 @@ const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
+const wrapAsync = require("./utils/wrapAsync.js");
+const ExpressError = require("./utils/ExpressError.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -50,16 +52,20 @@ app.get("/listings/:id", async (req, res) => {
 });
 
 //Create Route : to add a new listing to the database
-app.post("/listings", async (req, res, next) => {  // async because we are doing database operation(inserting data)
+app.post("/listings", wrapAsync(async (req, res, next) => {  // async because we are doing database operation(inserting data) and now using wrapAsync to handle errors
     // let {title, description, price, location, country} = req.body; --> to avoid this we use object type data access like below
-    try {
-        const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
+    // try {
+    //     const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
+    //     await newListing.save(); // saving the new listing to the database
+    //     res.redirect("./listings"); // redirecting to the index route to see the new listing added
+    // } catch(err) {
+    //     next(err); // passing the error to the error handling middleware
+    // }
+
+    const newListing = new Listing(req.body.listing); 
         await newListing.save(); // saving the new listing to the database
-        res.redirect("./listings"); // redirecting to the index route to see the new listing added
-    } catch(err) {
-        next(err); // passing the error to the error handling middleware
-    }
-}); 
+        res.redirect("./listings"); 
+})); 
 
 //Edit Route : to show the form to edit a listing
 app.get("/listings/:id/edit", async (req, res) => {
@@ -98,9 +104,18 @@ app.delete("/listings/:id", async (req, res) => {
 //     res.send('successful listing');
 // });
 
-app.use((err, req, res, next) => {  // error handling middleware
-    res.send("Something went wrong");
+app.all('*', (req, res, next) => {  // to handle all other routes that are not defined
+    next(new ExpressError(404, "Page Not Found"));
 });
+
+app.use((err, req, res, next) => {  // error handling middleware(updated after ExpressError class creation)
+    let { statusCode, message } = err;
+    res.statusCode(statusCode).send(message);
+});
+
+// app.use((err, req, res, next) => {  // error handling middleware
+//     res.send("Something went wrong");
+// });
 
 app.listen(8000, () => {
     console.log('Server is listening on port 8000');
