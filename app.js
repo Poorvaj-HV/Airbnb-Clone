@@ -63,8 +63,8 @@ app.post("/listings", wrapAsync(async (req, res, next) => {  // async because we
     // }
 
     const newListing = new Listing(req.body.listing); 
-        await newListing.save(); // saving the new listing to the database
-        res.redirect("./listings"); 
+    await newListing.save(); // saving the new listing to the database
+    res.redirect("/listings"); 
 })); 
 
 //Edit Route : to show the form to edit a listing
@@ -104,13 +104,13 @@ app.delete("/listings/:id", async (req, res) => {
 //     res.send('successful listing');
 // });
 
-app.all('*', (req, res, next) => {  // to handle all other routes that are not defined
-    next(new ExpressError(404, "Page Not Found"));
+app.all("*", (req, res, next) => {  // to handle all other routes that are not defined
+    next(new ExpressError(404, "Page Not Found!"));
 });
 
 app.use((err, req, res, next) => {  // error handling middleware(updated after ExpressError class creation)
     let { statusCode, message } = err;
-    res.statusCode(statusCode).send(message);
+    res.status(statusCode).send(message);
 });
 
 // app.use((err, req, res, next) => {  // error handling middleware
