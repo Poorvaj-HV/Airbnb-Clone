@@ -50,11 +50,15 @@ app.get("/listings/:id", async (req, res) => {
 });
 
 //Create Route : to add a new listing to the database
-app.post("/listings", async (req, res) => {  // async because we are doing database operation(inserting data)
+app.post("/listings", async (req, res, next) => {  // async because we are doing database operation(inserting data)
     // let {title, description, price, location, country} = req.body; --> to avoid this we use object type data access like below
-    const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
-    await newListing.save(); // saving the new listing to the database
-    res.redirect("./listings"); // redirecting to the index route to see the new listing added
+    try {
+        const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
+        await newListing.save(); // saving the new listing to the database
+        res.redirect("./listings"); // redirecting to the index route to see the new listing added
+    } catch(err) {
+        next(err); // passing the error to the error handling middleware
+    }
 }); 
 
 //Edit Route : to show the form to edit a listing
@@ -68,7 +72,7 @@ app.get("/listings/:id/edit", async (req, res) => {
 app.put("/listings/:id", async (req, res) => {
     let {id} = req.params;
     await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
-    res.redirect("/listings/"+ id); // redirecting to the show route to see the updated listing
+    res.redirect(`/listings/${id}`); // redirecting to the show route to see the updated listing
 });
 
 //Delete Route : to delete a listing from the database
@@ -94,6 +98,9 @@ app.delete("/listings/:id", async (req, res) => {
 //     res.send('successful listing');
 // });
 
+app.use((err, req, res, next) => {  // error handling middleware
+    res.send("Something went wrong");
+});
 
 app.listen(8000, () => {
     console.log('Server is listening on port 8000');
