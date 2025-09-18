@@ -7,6 +7,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
+const { listingSchema } = require("./schema.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -61,10 +62,14 @@ app.post("/listings", wrapAsync(async (req, res, next) => {  // async because we
     // } catch(err) {
     //     next(err); // passing the error to the error handling middleware
     // }
-    if(!req.body.listing) {
-        throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
-    }
+    // if(!req.body.listing) { this if statement work is done by the below line using Joi schema validation
+    //     throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
+    // } 
 
+    const result = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
+    if(result.error) {
+        throw new ExpressError(400, result.error); // if there is an error in validation, throw an error with status code 400 and the error message
+    }
     const newListing = new Listing(req.body.listing); 
     await newListing.save(); // saving the new listing to the database
     res.redirect("/listings"); 
