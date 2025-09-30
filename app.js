@@ -34,6 +34,16 @@ app.get("/", (req, res) => {
     res.send("Hii Poovi, you are on root page");
 });
 
+const validateListing = (req, res, next) => {
+    let { error } = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
+    if(error) {
+        let errMsg = error.details.map((el) => el.message).join(","); // joining all the error messages into a single string 
+        throw new ExpressError(400, error); // if there is an error in validation, throw an error with status code 400 and the error message
+    } else {
+        next();
+    }
+}
+
 //Index Route
 app.get("/listings", wrapAsync(async (req, res) => {
     const allListings = await Listing.find({});
@@ -53,7 +63,8 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 //Create Route : to add a new listing to the database
-app.post("/listings", wrapAsync(async (req, res, next) => {  // async because we are doing database operation(inserting data) and now using wrapAsync to handle errors
+app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {  // async because we are doing database operation(inserting data) and now using wrapAsync to handle errors
+    // validateListing is a middleware function to validate the request body against the listingSchema defined in schema.js file
     // let {title, description, price, location, country} = req.body; --> to avoid this we use object type data access like below
     // try {
     //     const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
@@ -66,10 +77,11 @@ app.post("/listings", wrapAsync(async (req, res, next) => {  // async because we
     //     throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
     // } 
 
-    const result = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
-    if(result.error) {
-        throw new ExpressError(400, result.error); // if there is an error in validation, throw an error with status code 400 and the error message
-    }
+    // const result = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
+    // if(result.error) {
+    //     throw new ExpressError(400, result.error); // if there is an error in validation, throw an error with status code 400 and the error message
+    // } this code moved to validateListing middleware function
+
     const newListing = new Listing(req.body.listing); 
     await newListing.save(); // saving the new listing to the database
     res.redirect("/listings"); 
@@ -83,10 +95,10 @@ app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
 }));
 
 //Update Route : to update the edited listing in the database
-app.put("/listings/:id", wrapAsync(async (req, res) => {
-    if(!req.body.listing) {
-        throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
-    }
+app.put("/listings/:id", validateListing, wrapAsync(async (req, res) => { //validateListing before storing in database
+    // if(!req.body.listing) { replaced by validateListing middleware function
+    //     throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
+    // }
     let {id} = req.params;
     await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
     res.redirect(`/listings/${id}`); // redirecting to the show route to see the updated listing
