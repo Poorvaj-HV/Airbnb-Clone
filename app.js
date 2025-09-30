@@ -7,7 +7,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
-const { listingSchema } = require("./schema.js");
+const { listingSchema, reviewSchema } = require("./schema.js");
 const Review = require("./models/review.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
@@ -45,6 +45,16 @@ const validateListing = (req, res, next) => {
     }
 }
 
+const validateReview = (req, res, next) => {
+    let { error } = reviewSchema.validate(req.body); // validating the request body against the reviewSchema defined in schema.js file
+    if(error) {
+        let errMsg = error.details.map((el) => el.message).join(","); // joining all the error messages into a single string 
+        throw new ExpressError(400, error); // if there is an error in validation, throw an error with status code 400 and the error message
+    } else {
+        next();
+    }
+}
+
 //Index Route
 app.get("/listings", wrapAsync(async (req, res) => {
     const allListings = await Listing.find({});
@@ -59,7 +69,7 @@ app.get("/listings/new", (req, res) => {
 //Show Route : it will directed through clicking listing title in index.ejs file
 app.get("/listings/:id", wrapAsync(async (req, res) => {
     let {id} = req.params;
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id).populate('reviews'); // populating the reviews array with the actual review documents, without populate we only get the object ids of the reviews
     res.render("./listings/show.ejs", {listing});
 }));
 
@@ -112,8 +122,9 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
     res.redirect("/listings");
 }));
 
-//Reviews route 
-app.post("/listings/:id/reviews", async (req, res) => {
+//Reviews
+//Post route 
+app.post("/listings/:id/reviews", validateReview, wrapAsync(async (req, res) => {
     let listing = await Listing.findById(req.params.id);
     let newReview = new Review(req.body.review);
 
@@ -123,7 +134,17 @@ app.post("/listings/:id/reviews", async (req, res) => {
     await listing.save();
 
     res.redirect(`/listings/${listing._id}`);
-});
+}));
+
+//Delete route
+app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
+    let {id, reviewId} = req.params;
+
+    await Listing.findByIdAndUpdate(id, {$pull: {reviews: reviewId}}); // pulling(delete/update) out the reviewId from the reviews array in the listing document
+    await Review.findByIdAndDelete(reviewId); // deleting the review document from the reviews collection
+
+    res.redirect(`/listings/${id}`);
+}));
 
 
 
