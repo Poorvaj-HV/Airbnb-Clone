@@ -10,6 +10,8 @@ const ExpressError = require("./utils/ExpressError.js");
 const { listingSchema, reviewSchema } = require("./schema.js");
 const Review = require("./models/review.js");
 
+const listingRoutes = require("./routes/listing.js");
+
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
 main()
@@ -35,16 +37,6 @@ app.get("/", (req, res) => {
     res.send("Hii Poovi, you are on root page");
 });
 
-const validateListing = (req, res, next) => {
-    let { error } = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
-    if(error) {
-        let errMsg = error.details.map((el) => el.message).join(","); // joining all the error messages into a single string 
-        throw new ExpressError(400, error); // if there is an error in validation, throw an error with status code 400 and the error message
-    } else {
-        next();
-    }
-}
-
 const validateReview = (req, res, next) => {
     let { error } = reviewSchema.validate(req.body); // validating the request body against the reviewSchema defined in schema.js file
     if(error) {
@@ -55,72 +47,7 @@ const validateReview = (req, res, next) => {
     }
 }
 
-//Index Route
-app.get("/listings", wrapAsync(async (req, res) => {
-    const allListings = await Listing.find({});
-    res.render("./listings/index.ejs", {allListings});  // rendering index.ejs file and passing allListings data to it
-}));
-
-//New Route : to show the form to create a new listing
-app.get("/listings/new", (req, res) => {
-    res.render("./listings/new.ejs");
-});
-
-//Show Route : it will directed through clicking listing title in index.ejs file
-app.get("/listings/:id", wrapAsync(async (req, res) => {
-    let {id} = req.params;
-    const listing = await Listing.findById(id).populate('reviews'); // populating the reviews array with the actual review documents, without populate we only get the object ids of the reviews
-    res.render("./listings/show.ejs", {listing});
-}));
-
-//Create Route : to add a new listing to the database
-app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {  // async because we are doing database operation(inserting data) and now using wrapAsync to handle errors
-    // validateListing is a middleware function to validate the request body against the listingSchema defined in schema.js file
-    // let {title, description, price, location, country} = req.body; --> to avoid this we use object type data access like below
-    // try {
-    //     const newListing = new Listing(req.body.listing); // listing is the key in new.ejs file which holds the object type data
-    //     await newListing.save(); // saving the new listing to the database
-    //     res.redirect("./listings"); // redirecting to the index route to see the new listing added
-    // } catch(err) {
-    //     next(err); // passing the error to the error handling middleware
-    // }
-    // if(!req.body.listing) { this if statement work is done by the below line using Joi schema validation
-    //     throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
-    // } 
-
-    // const result = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
-    // if(result.error) {
-    //     throw new ExpressError(400, result.error); // if there is an error in validation, throw an error with status code 400 and the error message
-    // } this code moved to validateListing middleware function
-
-    const newListing = new Listing(req.body.listing); 
-    await newListing.save(); // saving the new listing to the database
-    res.redirect("/listings"); 
-})); 
-
-//Edit Route : to show the form to edit a listing
-app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    res.render("./listings/edit.ejs", {listing});
-}));
-
-//Update Route : to update the edited listing in the database
-app.put("/listings/:id", validateListing, wrapAsync(async (req, res) => { //validateListing before storing in database
-    // if(!req.body.listing) { replaced by validateListing middleware function
-    //     throw new ExpressError(400, "Invalid Listing Data"); // if there is no listing data in the request body, throw an error
-    // }
-    let {id} = req.params;
-    await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
-    res.redirect(`/listings/${id}`); // redirecting to the show route to see the updated listing
-}));
-
-//Delete Route : to delete a listing from the database
-app.delete("/listings/:id", wrapAsync(async (req, res) => {
-    let {id} = req.params;
-    await Listing.findByIdAndDelete(id); // deleting the listing from the database
-    res.redirect("/listings");
-}));
+app.use("/listings", listingRoutes); // using the listing routes defined in routes/listing.js file
 
 //Reviews
 //Post route 
