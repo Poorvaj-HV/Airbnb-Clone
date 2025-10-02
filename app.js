@@ -1,14 +1,12 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
-const { listingSchema, reviewSchema } = require("./schema.js");
-const Review = require("./models/review.js");
+const session = require("express-session");
+const flash = require("connect-flash");
 
 const listingRoutes = require("./routes/listing.js");
 const reviewRoutes = require("./routes/review.js");
@@ -33,12 +31,33 @@ app.use(methodOverride("_method")); // to use method-override
 app.engine("ejs", ejsMate); // to use ejs-mate for layouts
 app.use(express.static(path.join(__dirname, "/public"))); // to serve static files from the public directory
 
+const sessionOptions = {   // session configuration
+    secret : "mysupersecretcode",
+    resave : false,
+    saveUninitialized : true,
+    cookie: {
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // cookie expires in 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, // cookie max age is 7 days
+        httpOnly: true, // for security purposes - to prevent from "cross-scripting attacks" // cookie is not accessible via client-side scripts 
+    }
+};
+
 app.get("/", (req, res) => {
     res.send("Hii Poovi, you are on root page");
 });
 
+app.use(session(sessionOptions)); // using the session middleware
+app.use(flash()); // using the flash middleware
+
+app.use((req, res, next) => {
+    res.locals.success = req.flash("success"); // to access success flash message in all templates
+    res.locals.error = req.flash("error"); // to access error flash message in all templates
+    next();
+});
+
+
 app.use("/listings", listingRoutes); // using the listing routes defined in routes/listing.js file
-app.use("/listings/:id/reviews", reviewRoutes); // using the review routes defined in routes/review.js file)
+app.use("/listings/:id/review", reviewRoutes); // using the review routes defined in routes/review.js file)
 
 app.use((err, req, res, next) => {      // error handling middleware(updated after ExpressError class creation)
     // const statusCode = err.statusCode || 404;

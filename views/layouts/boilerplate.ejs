@@ -21,7 +21,10 @@ ex: navbar is same for all pages so we can put it here in boilerplate.ejs and us
 </head>
 <body>
     <%- include("../includes/navbar.ejs") %>  <!-- including the navbar partial which is in includes folder -->
-    <div class="container"><%- body %></div>    <!-- this body is a special keyword provided by ejs-mate which will be replaced by the content of the child page which uses this boilerplate layout -->
+    <div class="container">
+      <%- include("../includes/flash.ejs") %> <!-- including the flash partial which is in includes folder -->
+      <%- body %>
+    </div>    <!-- this body is a special keyword provided by ejs-mate which will be replaced by the content of the child page which uses this boilerplate layout -->
 
     <%- include("../includes/footer.ejs") %>  <!-- including the footer partial which is in includes folder -->
 
