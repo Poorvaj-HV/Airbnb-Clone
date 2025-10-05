@@ -7,9 +7,13 @@ const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
 const flash = require("connect-flash");
+const passport = require("passport");
+const localStrategy = require("passport-local");
+const User = require("./models/user.js");
 
 const listingRoutes = require("./routes/listing.js");
 const reviewRoutes = require("./routes/review.js");
+const userRoutes = require("./routes/user.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -49,15 +53,33 @@ app.get("/", (req, res) => {
 app.use(session(sessionOptions)); // using the session middleware
 app.use(flash()); // using the flash middleware
 
+app.use(passport.initialize()); // initializing passport
+app.use(passport.session()); // using passport session
+passport.use(new localStrategy(User.authenticate())); // using the local strategy for authentication, User.authenticate() is a method provided by passport-local-mongoose to authenticate users
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser()); // these methods are used to serialize and deserialize the user, when we login, passport will save some data about the user in the session (serialize) and when we make a request, passport will get the data from the session and use it to get the user details (deserialize)
+
 app.use((req, res, next) => {
     res.locals.success = req.flash("success"); // to access success flash message in all templates
     res.locals.error = req.flash("error"); // to access error flash message in all templates
+    res.locals.currUser = req.user; // to access the currently logged in user in all templates, req.user is provided by passport and contains the authenticated user
     next();
 });
 
+// app.get("/demouser", async (req, res) => {
+//     let fakeUser = new User({
+//         email: "student@gmail.com",
+//         username: "student"     // username is not defined in userSchema but it will be added by passport-local-mongoose plugin automatically
+//     });
+
+//     let registeredUser = await User.register(fakeUser, "helloworld"); // register() is automatically checks if user is registered on DBs, instead of manually checking this using if-else by me, registering the user with the password, this method is provided by passport-local-mongoose plugin, it will hash and salt the password and save the user to the database.
+//     res.send(registeredUser);
+// });
 
 app.use("/listings", listingRoutes); // using the listing routes defined in routes/listing.js file
 app.use("/listings/:id/review", reviewRoutes); // using the review routes defined in routes/review.js file)
+app.use("/", userRoutes); // using the user routes defined in routes/user.js file
 
 app.use((err, req, res, next) => {      // error handling middleware(updated after ExpressError class creation)
     // const statusCode = err.statusCode || 404;
