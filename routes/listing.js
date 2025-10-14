@@ -1,20 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
-const { listingSchema } = require("../schema.js");
-const ExpressError = require("../utils/ExpressError.js");
 const Listing = require("../models/listing.js");
-const { isLoggedIn } = require("../middleware.js");
+const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
 
-const validateListing = (req, res, next) => {
-    let { error } = listingSchema.validate(req.body); // validating the request body against the listingSchema defined in schema.js file
-    if(error) {
-        let errMsg = error.details.map((el) => el.message).join(","); // joining all the error messages into a single string 
-        throw new ExpressError(400, error); // if there is an error in validation, throw an error with status code 400 and the error message
-    } else {
-        next();
-    }
-}
+
 
 //Index Route
 router.get("/", wrapAsync(async (req, res) => {
@@ -31,12 +21,12 @@ router.get("/new", isLoggedIn, (req, res) => {      // passing isLoggedIn middle
 //Show Route : it will directed through clicking listing title in index.ejs file
 router.get("/:id", wrapAsync(async (req, res) => {
     let {id} = req.params;
-    const listing = await Listing.findById(id).populate('reviews').populate("owner"); // with reviews we also get owner of reviews, populating the reviews array with the actual review documents, without populate we only get the object ids of the reviews
+    const listing = await Listing.findById(id).populate({ path: "reviews", populate: { path: "author", }, }).populate("owner"); // with reviews we also get owner of reviews, populating the reviews array with the actual review documents, without populate we only get the object ids of the reviews
     if(!listing) {
         req.flash("error", "Listing you requested for, does not exist..!!"); // flash message for error
-        res.redirect("/listings");
+        return res.redirect("/listings");
     }
-    res.render("./listings/show.ejs", {listing});
+    res.render("./listings/show.ejs", {listing, currUser: req.user}); // passing the currently logged in user to the show.ejs file to check if the user is the owner of the listing or not
 }));
 
 //Create Route : to add a new listing to the database
@@ -50,20 +40,26 @@ router.post("/", isLoggedIn, validateListing, wrapAsync(async (req, res, next) =
 })); 
 
 //Edit Route : to show the form to edit a listing
-router.get("/:id/edit", isLoggedIn, wrapAsync(async (req, res) => {
+router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync(async (req, res) => {
     let {id} = req.params;
     const listing = await Listing.findById(id);
     if(!listing) {
         req.flash("error", "Listing you requested for, does not exist..!!"); // flash message for error
         return res.redirect("/listings");
     }
-    req.flash("success", "Listing Deleted!"); // flash message for successful deletion of listing
+    // req.flash("success", "Listing Deleted!"); // flash message for successful deletion of listing
     res.render("./listings/edit.ejs", {listing});
 }));
 
 //Update Route : to update the edited listing in the database
-router.put("/:id", isLoggedIn, validateListing, wrapAsync(async (req, res) => { //validateListing before storing in database
+router.put("/:id", isLoggedIn, isOwner, validateListing, wrapAsync(async (req, res) => { //validateListing before storing in database
     let {id} = req.params;
+    let listing = await Listing.findById(id);
+    // if(!listing.owner._id.equals(res.locals.currUser._id)) { // checking if the owner of the listing is the same as the currently logged in user
+    //     req.flash("error", "You don't have permission to edit"); // flash message for error
+    //     return res.redirect(`/listings/${id}`);
+    // } -- moved to middleware.js file as isOwner function and used in app.js file
+
     await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
 
     req.flash("success", "Listing Updated!"); // flash message for successful updation of listing
@@ -71,7 +67,7 @@ router.put("/:id", isLoggedIn, validateListing, wrapAsync(async (req, res) => { 
 }));
 
 //Delete Route : to delete a listing from the database
-router.delete("/:id", isLoggedIn, wrapAsync(async (req, res) => {
+router.delete("/:id", isLoggedIn, isOwner, wrapAsync(async (req, res) => {
     let {id} = req.params;
     await Listing.findByIdAndDelete(id); // deleting the listing from the database
     res.redirect("/listings");
