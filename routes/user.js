@@ -5,51 +5,28 @@ const wrapAsync = require("../utils/wrapAsync");
 const passport = require("passport");
 const { saveRedirectUrl } = require("../middleware.js");
 
-router.get("/signup", (req, res) => {
-    res.render("users/signup.ejs");
-});
+const userController = require("../controllers/users.js");
 
-router.post("/signup", wrapAsync(async(req, res) => {
-    try {
-        let {username, email, password} = req.body;
-        const newUser = new User({email, username});
-        const registeredUser = await User.register(newUser, password);
-        // console.log(registeredUser);
-        req.login(registeredUser, (err) => {
-            if(err) {
-                return next(err);
-            }
-            req.flash("success", "Welcome to Wanderlust!");
-            res.redirect("/listings");
-        });
-    } catch(e) {
-        req.flash("error", e.message);
-        res.redirect("/signup");
-    }
-}));
+router.route("/signup")
+  .get(userController.renderSignupForm)
+  .post(wrapAsync(userController.signup));
 
-router.get("/login", (req, res) => {
-    res.render("users/login.ejs")
-});
-
-router.post("/login", saveRedirectUrl, passport.authenticate("local", {  // passport.authenticate searchs(on DBs) and response us the username and password and proceed the next step that if exist login else back to login again.
+router.route("/login")
+  .get(userController.renderLoginForm)
+  .post(saveRedirectUrl, passport.authenticate("local", {  // passport.authenticate searchs(on DBs) and response us the username and password and proceed the next step that if exist login else back to login again.
     failureRedirect: '/login', 
     failureFlash: true}), 
-    async(req, res) => {
-        req.flash("success", "Welcome back to Wanderlust!");
-        let redirectUrl = res.locals.redirectUrl || "/listings"; // if there is no redirectUrl in res.locals, redirect to /listings
-        res.redirect(redirectUrl); // redirecting to the url the user was trying to access before login
-    }
-);
+    userController.login
+  );
 
-router.get("/logout", (req, res, next) => {
-    req.logout((err) => {
-        if(err) {
-            return next(err);
-        }
-        req.flash("success", "you have been logged out!");
-        res.redirect("/listings");
-    })
-});
+// when we use a controller function directly as a callback, we don't need to wrap it in wrapAsync because it is already handled in the controller file.
+
+// here we need to wrap it in wrapAsync because if there is an error in the async function, it will be passed to the next middleware which is the error handler.
+
+// when we use a controller function directly as a callback, we don't need to wrap it in wrapAsync because it is already handled in the controller file.
+
+
+
+router.get("/logout", userController.logout); // when we use a controller function directly as a callback, we don't need to wrap it in wrapAsync because it is already handled in the controller file.
 
 module.exports = router;
