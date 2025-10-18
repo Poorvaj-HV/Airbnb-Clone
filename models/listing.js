@@ -9,12 +9,8 @@ const listingSchema = new Schema({
     },
     description: String,
     image: {
+        url: String,
         filename: String,
-        url: {
-            type: String,
-            default: "https://unsplash.com/photos/a-person-stands-on-rocks-under-a-sunset-sky-cdP8YP7hyFo",
-            set: (v) => v === "" ? "https://unsplash.com/photos/a-person-stands-on-rocks-under-a-sunset-sky-cdP8YP7hyFo" : v,
-        }
     },
     price: Number,
     location: String,
