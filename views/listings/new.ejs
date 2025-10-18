@@ -4,7 +4,7 @@
   <div class="col-8 offset-2">  <!-- bootstrap class for column with offset -->
     <h3><b>Create a new Listing</b></h3>
     <br>
-    <form method="POST" action="/listings" novalidate class="needs-validation">  <!-- when we submit this form it will send a post request to /listings route, novalidate -> bootstrap validation to remove browser default validation setting and apply custom validation -->   
+    <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">  <!-- when we submit this form it will send a post request to /listings route, novalidate -> bootstrap validation to remove browser default validation setting and apply custom validation -->   
       <div class="mb-3">  <!-- bootstrap class for margin bottom -->
         <label for="title" class="form-lable">Title</label>  <!-- bootstrap class for form label -->
         <!-- bootstrap class for form control -->
@@ -24,9 +24,15 @@
         <div class="invalid-feedback">Please enter a short Description</div>
       </div>
 
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <label for="image" class="form-lable">Image Link</label>
         <input name="listing[image]" placeholder="Image URL/Link" type="text" class="form-control"/>
+      </div> -->
+
+      <div class="mb-3">
+        <label for="image" class="form-lable">Upload Listing Image</label>
+        <input name="listing[image]" type="file" class="form-control"/>
+        required
       </div>
 
       <div class="row">     <!-- bootstrap class for row & this div is for making Price and Coutry in a same row--> 
