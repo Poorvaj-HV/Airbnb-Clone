@@ -22,9 +22,13 @@ module.exports.showListing = async (req, res) => {
 };
 
 module.exports.createListing = async (req, res, next) => {  // async because we are doing database operation(inserting data) and now using wrapAsync to handle errors
+    let url = req.file.path;
+    let filename = req.file.filename;
+
     const newListing = new Listing(req.body.listing); 
     // console.log(req.user);
     newListing.owner = req.user._id; // setting the owner of the listing to the currently logged in user
+    newListing.image = {url, filename}; // setting the image of the listing
     await newListing.save(); // saving the new listing to the database
     req.flash("success", "New Listing Created!"); // flash message for successful creation of listing)
     res.redirect("/listings"); 
@@ -38,18 +42,26 @@ module.exports.editListing = async (req, res) => {
         return res.redirect("/listings");
     }
     // req.flash("success", "Listing Deleted!"); // flash message for successful deletion of listing
-    res.render("./listings/edit.ejs", {listing});
+
+    let originalImageUrl = listing.image.url;
+    originalImageUrl = originalImageUrl.replace("/upload", "/upload/w_250"); // resizing the image using cloudinary url manipulation
+    res.render("./listings/edit.ejs", {listing, originalImageUrl});
 };
 
 module.exports.updateListing = async (req, res) => { //validateListing before storing in database
     let {id} = req.params;
-    let listing = await Listing.findById(id);
+    let listing = await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form;
     // if(!listing.owner._id.equals(res.locals.currUser._id)) { // checking if the owner of the listing is the same as the currently logged in user
     //     req.flash("error", "You don't have permission to edit"); // flash message for error
     //     return res.redirect(`/listings/${id}`);
     // } -- moved to middleware.js file as isOwner function and used in app.js file
 
-    await Listing.findByIdAndUpdate(id, {...req.body.listing}); // updating the listing with the new data from the form
+    if( typeof req.file !== "undefined" ) {    // checking if a new image is uploaded, if yes then update the image else keep the old image
+        let url = req.file.path;
+        let filename = req.file.filename;
+        listing.image = { url, filename }; // updating the image of the listing
+        await listing.save(); // saving the updated listing to the database
+    }
 
     req.flash("success", "Listing Updated!"); // flash message for successful updation of listing
     res.redirect(`/listings/${id}`); // redirecting to the show route to see the updated listing
