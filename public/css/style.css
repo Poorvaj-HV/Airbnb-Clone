@@ -124,3 +124,9 @@ body {
     color: #ff0000;
     font-size: 0.9rem;
 }
+
+/* Mapbox map style */
+#map { 
+    height: 400px;
+    width: 80vh;
+}
