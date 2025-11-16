@@ -1,4 +1,7 @@
 const Listing = require('../models/listing.js');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');      // starting the geocoding service from mapbox sdk
+const mapToken = process.env.MAP_TOKEN;
+const geocodingClient = mbxGeocoding({ accessToken: mapToken });    // initializing the geocoding client with the access token from environment variable
 
 // Get all listings
 
@@ -21,17 +24,26 @@ module.exports.showListing = async (req, res) => {
     res.render("./listings/show.ejs", {listing, currUser: req.user}); // passing the currently logged in user to the show.ejs file to check if the user is the owner of the listing or not
 };
 
-module.exports.createListing = async (req, res, next) => {  // async because we are doing database operation(inserting data) and now using wrapAsync to handle errors
-    let url = req.file.path;
-    let filename = req.file.filename;
+module.exports.createListing = async (req, res, next) => {
+    let response = await geocodingClient
+      .forwardGeocode({
+        query: req.body.listing.location,
+        limit: 1,
+      })
+      .send();
 
-    const newListing = new Listing(req.body.listing); 
-    // console.log(req.user);
-    newListing.owner = req.user._id; // setting the owner of the listing to the currently logged in user
-    newListing.image = {url, filename}; // setting the image of the listing
-    await newListing.save(); // saving the new listing to the database
-    req.flash("success", "New Listing Created!"); // flash message for successful creation of listing)
-    res.redirect("/listings"); 
+      let url = req.file.path;
+      let filename = req.file.filename;
+      const newListing = new Listing(req.body.listing);
+      newListing.owner = req.user._id;
+      newListing.image = { url, filename }; // storing the image url and filename in the listing document
+
+      newListing.geometry = response.body.features[0].geometry; // storing the geometry of the location in the listing document
+
+      let savedListing = await newListing.save();
+      console.log(savedListing);
+      req.flash("success", "New Listing Created!");
+      res.redirect("/listings");
 };
 
 module.exports.editListing = async (req, res) => {
