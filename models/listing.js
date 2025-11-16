@@ -25,7 +25,24 @@ const listingSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
     },
-});
+    geometry: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    }
+}, { timestamps: true });
+
+// Add indexes for better performance
+listingSchema.index({ owner: 1 });
+listingSchema.index({ location: 1 });
+listingSchema.index({ country: 1 });
+listingSchema.index({ geometry: '2dsphere' });
 
 //Mongoose Middleware : to delete all the reviews associated with a listing when the listing is deleted
 listingSchema.post("findOneAndDelete", async (listing) => {
